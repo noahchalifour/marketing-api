@@ -1,0 +1,24 @@
+version: '3'
+services:
+
+  api-mkapi:
+    depends_on:
+      - postgres-mkapi
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      DB_USERNAME: postgres
+      DB_PASSWORD: password
+      DB_SERVER: postgres-mkapi
+      DB_NAME: postgres
+      DB_TYPE: postgres
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 465
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      
+  postgres-mkapi:
+    image: "postgres"
+    environment:
+      POSTGRES_PASSWORD: password

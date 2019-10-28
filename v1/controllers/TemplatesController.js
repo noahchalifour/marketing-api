@@ -4,7 +4,7 @@ const get = (userId, limit, offset) => {
 
     return new Promise((resolve, reject) => {
 
-        db.lists.findAll({
+        db.templates.findAll({
             limit: limit,
             offset: offset,
             where: {
@@ -20,9 +20,7 @@ const getById = (id) => {
 
     return new Promise((resolve, reject) => {
 
-        db.lists.findByPk(id, {
-            include: [db.contacts]
-        }).then(resolve, reject);
+        db.templates.findByPk(id).then(resolve, reject);
 
     })
 
@@ -32,11 +30,10 @@ const getByName = (name, userId) => {
 
     return new Promise((resolve, reject) => {
 
-        db.lists.findOne({
+        db.templates.findOne({
             where: {
                 name, userId
-            },
-            include: [db.contacts]
+            }
         }).then(resolve, reject);
 
     })
@@ -47,14 +44,15 @@ const create = (fields) => {
 
     return new Promise((resolve, reject) => {
 
-        db.lists.findOrCreate({
+        db.templates.findOrCreate({
             where: {
                 name: fields.name || null,
                 userId: fields.userId || null
             },
             defaults: {
                 name: fields.name || null,
-                description: fields.description || '',
+                html: fields.html || null,
+                text: fields.text || null,
                 userId: fields.userId || null
             }
         }).then(resolve, reject);
@@ -67,7 +65,7 @@ const update = (id, fields) => {
 
     return new Promise((resolve, reject) => {
 
-        db.lists.update(fields, {
+        db.templates.update(fields, {
             where: {
                 id
             },
@@ -82,7 +80,7 @@ const destroy = (id) => {
 
     return new Promise((resolve, reject) => {
 
-        db.lists.destroy({
+        db.templates.destroy({
             where: {
                 id
             }

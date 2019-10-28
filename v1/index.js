@@ -8,6 +8,8 @@ const UsersController = require('./controllers/UsersController');
 const usersRouter = require('./routes/users');
 const listsRouter = require('./routes/lists');
 const contactsRouter = require('./routes/contacts');
+const flowsRouter = require('./routes/flows');
+const templatesRouter = require('./routes/templates');
 
 const router = express.Router();
 
@@ -44,10 +46,6 @@ passport.use(new BasicStrategy((username, password, done) => {
         
                     if (res) {
 
-                        if (!user.confirmed) {
-                            return done('Your account has not been confirmed. Please check your email to confirm your account.');
-                        }
-
                         return done(null, user);
 
                     } else {
@@ -75,5 +73,7 @@ router.use(passport.authenticate('basic', { session: false }));
 
 router.use('/lists', listsRouter);
 router.use('/contacts', contactsRouter);
+router.use('/flows', flowsRouter);
+router.use('/templates', templatesRouter);
 
-module.exports = router
+module.exports = router;

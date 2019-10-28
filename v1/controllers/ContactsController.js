@@ -34,7 +34,7 @@ const create = (fields) => {
 
         db.contacts.findOrCreate({
             where: {
-                name: fields.name || null,
+                value: fields.value || null,
                 listId: fields.listId || null
             },
             defaults: {
@@ -53,7 +53,7 @@ const update = (id, fields) => {
 
     return new Promise((resolve, reject) => {
 
-        db.lists.update(fields, {
+        db.contacts.update(fields, {
             where: {
                 id
             },
@@ -68,7 +68,7 @@ const destroy = (id) => {
 
     return new Promise((resolve, reject) => {
 
-        db.lists.destroy({
+        db.contacts.destroy({
             where: {
                 id
             }

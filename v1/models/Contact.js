@@ -15,20 +15,26 @@ module.exports = (sequelize, DataTypes) => {
             values: ['Email'],
             allowNull: false,
             validate: {
-                isIn: ['Email']
+                isIn: [['Email']]
             }
         },
     
         value: {
             type: DataTypes.STRING,
             allowNull: false,
-            unique: true,
             validate: {
                 notEmpty: true
             }
         }
         
     }, {
+
+        indexes: [
+            {
+                unique: true,
+                fields: ['value', 'listId']
+            }
+        ],
 
         defaultScope: {
             attributes: {

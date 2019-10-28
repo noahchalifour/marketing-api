@@ -2,6 +2,7 @@ const express = require('express');
 
 const ListsController = require('../controllers/ListsController');
 const ContactsController = require('../controllers/ContactsController');
+const FlowsController = require('../controllers/FlowsController');
 
 const router = express.Router();
 
@@ -61,7 +62,9 @@ router.patch('/:id', (req, res) => {
                     })
                 }
 
-                ContactsController.update(id)
+                req.body.listId = contact.list.id;
+
+                ContactsController.update(id, req.body)
                     .then(
                         ([rows, contacts]) => {
 
@@ -83,7 +86,7 @@ router.patch('/:id', (req, res) => {
                             const details = error.errors.map(err => err.message);
                     
                             return res.status(400).json({
-                                messageText: '',
+                                messageText: 'Error(s) occurred while trying to update contact.',
                                 details
                             });
 
@@ -160,22 +163,22 @@ router.delete('/:id', (req, res) => {
 
 router.post('/create', (req, res) => {
 
-    if (req.body.listId == null) {
+    if (req.body.list == null) {
         return res.status(400).json({
             messageText: 'Error(s) occurred while trying to create contact.',
             details: [
-                'contact.listId cannot be null'
+                'contact.list cannot be null'
             ]
         })
     }
 
-    ListsController.getById(req.body.listId)
+    ListsController.getByName(req.body.list, req.user.id)
         .then(
             (list) => {
 
                 if (!list) {
                     return res.status(404).json({
-                        messageText: `Unable to find list with id: ${req.body.listId}`
+                        messageText: `Unable to find list with name: ${req.body.list}`
                     })
                 }
 
@@ -185,6 +188,9 @@ router.post('/create', (req, res) => {
                     })
                 }
 
+                req.body.listId = list.id;
+                delete req.body.list;
+
                 ContactsController.create(req.body)
                     .then(
                         ([contact, created]) => {
@@ -193,7 +199,7 @@ router.post('/create', (req, res) => {
                 
                                 let details = [];
                 
-                                if (contact.value == fields.value) {
+                                if (contact.value == req.body.value) {
                                     details.push('contact already exists');
                                 }
                 
@@ -203,11 +209,28 @@ router.post('/create', (req, res) => {
                                 })
                 
                             }
-                
-                            return res.status(200).json({
-                                messageText: 'Contact created successfully.',
-                                contact
-                            });
+
+                            FlowsController.executeByTrigger('Add To List', list.name, [contact])
+                                .then(
+                                    () => {
+
+                                        return res.status(200).json({
+                                            messageText: 'Contact created successfully.',
+                                            contact
+                                        });
+
+                                    },
+                                    (err) => {
+
+                                        console.log(err);
+
+                                        return res.status(200).json({
+                                            messageText: 'Contact created successfully.',
+                                            contact
+                                        });
+
+                                    }
+                                )
                 
                         },
                         (error) => {

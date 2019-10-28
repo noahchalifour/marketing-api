@@ -1,6 +1,7 @@
 const express = require('express');
 
 const ListsController = require('../controllers/ListsController');
+const FlowsController = require('../controllers/FlowsController');
 
 const router = express.Router();
 
@@ -85,7 +86,7 @@ router.patch('/:id', (req, res) => {
                     })
                 }
 
-                ListsController.update(id)
+                ListsController.update(id, req.body)
                     .then(
                         ([rows, lists]) => {
 
@@ -180,7 +181,7 @@ router.delete('/:id', (req, res) => {
             }
         )
 
-})
+});
 
 router.post('/create', (req, res) => {
 
@@ -194,7 +195,7 @@ router.post('/create', (req, res) => {
     
                     let details = [];
     
-                    if (list.name == fields.name) {
+                    if (list.name == req.body.name) {
                         details.push('list already exists');
                     }
     
@@ -231,5 +232,93 @@ router.post('/create', (req, res) => {
         )
 
 });
+
+router.post('/:id', (req, res) => {
+
+    const id = req.params.id;
+
+    if (req.body.flow == null) {
+        return res.status(400).json({
+            messageText: 'You must provide a flow.'
+        })
+    }
+
+    ListsController.getById(id)
+        .then(
+            (list) => {
+
+                if (!list) {
+                    return res.status(404).json({
+                        messageText: `Unable to find list with id: ${id}`
+                    })
+                }
+
+                if (list.userId != req.user.id) {
+                    return res.status(401).json({
+                        messageText: 'You are not authorized to access this resource.'
+                    })
+                }
+
+                FlowsController.getByName(req.body.flow, list.userId)
+                    .then(
+                        (flow) => {
+
+                            if (!flow) {
+                                return res.status(404).json({
+                                    messageText: `Unable to find flow with name: ${req.body.flow}`
+                                })
+                            }
+            
+                            if (flow.userId != req.user.id) {
+                                return res.status(401).json({
+                                    messageText: 'You are not authorized to access this resource.'
+                                })
+                            }
+
+                            FlowsController.executeByName(flow.name, req.user.id, list.contacts)
+                                .then(
+                                    () => {
+
+                                        return res.status(200).json({
+                                            messageText: 'Flow executed successfully.'
+                                        })
+
+                                    },
+                                    (error) => {
+
+                                        console.error(error);
+
+                                        return res.status(500).json({
+                                            messageText: 'An unexpected error occurred while putting list through flow.'
+                                        })
+
+                                    }
+                                )
+
+                        },
+                        (error) => {
+
+                            console.error(error);
+
+                            return res.status(500).json({
+                                messageText: 'An unexpected error occurred while putting list through flow.'
+                            })
+
+                        }
+                    )
+
+            },
+            (error) => {
+
+                console.error(error);
+
+                return res.status(500).json({
+                    messageText: 'An unexpected error occurred while putting list through flow.'
+                })
+
+            }
+        )
+
+})
 
 module.exports = router;
