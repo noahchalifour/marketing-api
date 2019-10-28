@@ -19,7 +19,7 @@ Before you can start the service using docker compose you must replace the value
 To start the marketing API using docker compose, simply run the following commands
 
 ```
-git clone https://github.com/noahchalifour/marketing-api
+git clone https://github.com/noahchalifour/marketing-api.git
 cd marketing-api
 docker-compose up -d
 ```
